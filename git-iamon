@@ -4,12 +4,14 @@
 @author Shah Newaz Khan 2015
  */
 require 'vendor/autoload.php';
+include 'vendor/phpqrcode/qrlib.php';
  
 use Parse\ParseClient;
  
 ParseClient::initialize('HymbXJIgdgKl7i45sEXi29BsAvMXwomlkDgH2TC8', '7VzTNhgct7QqwGNzbjw19ngY9Fp1wPcW3fByj0UG', 'nmzlXi5Ejm9JDfPFC01a3yvLXqGoO6NGtAgjDbie');
 
 use Parse\ParseObject;
+use Parse\ParseQuery;
 
 
 //Parse arguments
@@ -27,18 +29,53 @@ function getVersion()
 
 function initParse()
 {
-	$gameScore = new ParseObject("GameScore");
+	
+	$fc = explode("\n", file_get_contents( getcwd() . "/.git/config" , true));
+	
+	for ($i=0; $i < count($fc); $i++)
+		if (strpos($fc[$i],'remote') !== false)
+			if(strpos($fc[$i + 1], 'url') !== false)
+				$remote = explode(" ",$fc[$i + 1]);
+
+	exec('git rev-parse --abbrev-ref HEAD > .currentBranch.txt');
+	$branch = explode("\n", file_get_contents( getcwd() . "/.currentBranch.txt" , true));
+	exec('rm .currentBranch.txt');
+
+	exec('git config user.user > .currentUser.txt');
+	$user = explode("\n", file_get_contents( getcwd() . "/.currentUser.txt" , true));
+	exec('rm .currentUser.txt');	
+
+	QRcode::png($remote[2], 'iamon.png'); 	
+	
+	$query = new ParseQuery("Project");
+	$query->equalTo("remote", $remote[2]);
+	$query->equalTo("user", $user[0]);
+
+	$results = $query->find();
+
+	if (count($results) < 1)
+	{
+		$project = new ParseObject("Project");
  
-	$gameScore->set("score", 1337);
-	$gameScore->set("playerName", "Sean Plott");
-	$gameScore->set("cheatMode", false);
-	 
-	try {
-	  //$gameScore->save();
-	  echo 'New object created with objectId: ' . $gameScore->getObjectId();
-	} catch (ParseException $ex) {  
-	  // Execute any logic that should take place if the save fails.
-	  // error is a ParseException object with an error code and message.
-	  echo 'Failed to create new object, with error message: ' + $ex->getMessage();
+		$project->set("remote", $remote[2]);
+		$project->set("user", $user[0]);
+		$project->set("branch", $branch[0]);
+			 
+		try 
+		{
+		  $project->save();
+		  echo 'Updated user: ' . $user[0] . ' to branch: ' . $branch[0] . "\n";
+		} catch (ParseException $ex) {  
+		  echo 'Failed to create new object, with error message: ' + $ex->getMessage();
+		}
 	}
+	else
+	{
+		$project = $results[0];
+		$project->set("branch" , $branch[0]);
+		$project->save();
+		echo 'Updated user: ' . $user[0] . ' to branch: ' . $branch[0] . "\n";
+	}
+	
+	
 }
