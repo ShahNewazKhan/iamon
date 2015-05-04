@@ -41,11 +41,11 @@ function initParse()
 	$branch = explode("\n", file_get_contents( getcwd() . "/.currentBranch.txt" , true));
 	exec('rm .currentBranch.txt');
 
-	exec('git config user.user > .currentUser.txt');
+	exec('git config user.name > .currentUser.txt');
 	$user = explode("\n", file_get_contents( getcwd() . "/.currentUser.txt" , true));
 	exec('rm .currentUser.txt');	
 
-	QRcode::png($remote[2], 'iamon.png'); 	
+	//QRcode::png($remote[2], 'iamon.png'); 	
 	
 	$query = new ParseQuery("Project");
 	$query->equalTo("remote", $remote[2]);
