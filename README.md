@@ -3,4 +3,8 @@ Git extension to share / find out who is on what branch
 
 # Installation
 
-Create symbolic link to /usr/local/bin
+* Download the project archive from GitHub
+* Run install.php from commandline (php install.php)
+* To initialize a branch run (git iamon init)
+* To see whose on a branch run (git whoseon -b {branch name})
+
