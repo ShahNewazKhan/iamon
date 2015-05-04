@@ -18,18 +18,16 @@ use Parse\ParseQuery;
 foreach ($argv as $arg) 
 {
     if( strcmp($arg, "-v") == 0 ) getVersion();
-    if( strcmp($arg, "init") == 0 ) initParse();
-
+    if( strcmp($arg, "-b") == 0) whoseOnBranch($argv);
 }
 
 function getVersion()
 {
-	echo "Beta Version 0.1" . "\n" ;
+	echo "Beta Version 0.2" . "\n" ;
 }
 
-function initParse()
+function whoseOnBranch($argv)
 {
-	
 	$fc = explode("\n", file_get_contents( getcwd() . "/.git/config" , true));
 	
 	for ($i=0; $i < count($fc); $i++)
@@ -49,31 +47,13 @@ function initParse()
 	
 	$query = new ParseQuery("Project");
 	$query->equalTo("remote", $remote[2]);
-	$query->equalTo("user", $user[0]);
+	$query->equalTo("branch", $argv[2]);
 
 	$results = $query->find();
 
-	if (count($results) < 1)
+	foreach ($results as $result)
 	{
-		$project = new ParseObject("Project");
- 
-		$project->set("remote", $remote[2]);
-		$project->set("user", $user[0]);
-		$project->set("branch", $branch[0]);
-			 
-		try 
-		{
-		  $project->save();
-		  echo 'Updated user: ' . $user[0] . ' to branch: ' . $branch[0] . "\n";
-		} catch (ParseException $ex) {  
-		  echo 'Failed to create new object, with error message: ' + $ex->getMessage();
-		}
+		echo "User: " . $result->get('user') . " is on branch: " . $result->get('branch') . "\n";
 	}
-	else
-	{
-		$project = $results[0];
-		$project->set("branch" , $branch[0]);
-		$project->save();
-		echo 'Updated user: ' . $user[0] . ' to branch: ' . $branch[0] . "\n";
-	}
+
 }
