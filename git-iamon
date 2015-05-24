@@ -5,6 +5,7 @@
  */
 require 'vendor/autoload.php';
 include 'vendor/phpqrcode/qrlib.php';
+include 'vendor/aferrandini/ph'
  
 use Parse\ParseClient;
  
@@ -30,20 +31,11 @@ function getVersion()
 function initParse()
 {
 	
-	$fc = explode("\n", file_get_contents( getcwd() . "/.git/config" , true));
-	
-	for ($i=0; $i < count($fc); $i++)
-		if (strpos($fc[$i],'remote') !== false)
-			if(strpos($fc[$i + 1], 'url') !== false)
-				$remote = explode(" ",$fc[$i + 1]);
+	$remote = getRemoteUrl();
 
-	exec('git rev-parse --abbrev-ref HEAD > .currentBranch.txt');
-	$branch = explode("\n", file_get_contents( getcwd() . "/.currentBranch.txt" , true));
-	exec('rm .currentBranch.txt');
+	$branch = getBranchName();
 
-	exec('git config user.name > .currentUser.txt');
-	$user = explode("\n", file_get_contents( getcwd() . "/.currentUser.txt" , true));
-	exec('rm .currentUser.txt');	
+	$user = getUserName();	
 
 	//QRcode::png($remote[2], 'iamon.png'); 	
 	
@@ -53,6 +45,41 @@ function initParse()
 
 	$results = $query->find();
 
+	initParseEntry($results, $remote, $branch, $user);
+
+	
+}
+
+function getRemoteUrl()
+{
+	$fc = explode("\n", file_get_contents( getcwd() . "/.git/config" , true));
+	
+	for ($i=0; $i < count($fc); $i++)
+		if (strpos($fc[$i],'remote') !== false)
+			if(strpos($fc[$i + 1], 'url') !== false)
+				return  explode(" ",$fc[$i + 1]);
+}
+
+function getBranchName()
+{
+	exec('git rev-parse --abbrev-ref HEAD > .currentBranch.txt');
+	$branch = explode("\n", file_get_contents( getcwd() . "/.currentBranch.txt" , true));
+	exec('rm .currentBranch.txt');
+
+	return $branch;
+}
+
+function getUserName()
+{
+	exec('git config user.name > .currentUser.txt');
+	$user = explode("\n", file_get_contents( getcwd() . "/.currentUser.txt" , true));
+	exec('rm .currentUser.txt');
+
+	return $user;
+}
+
+function initParseEntry($results, $remote, $branch, $user)
+{
 	if (count($results) < 1)
 	{
 		$project = new ParseObject("Project");
